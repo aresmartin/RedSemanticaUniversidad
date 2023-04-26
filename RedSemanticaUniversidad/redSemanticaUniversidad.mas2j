@@ -1,0 +1,18 @@
+/*
+    redSemanticaUniversidad
+    ---------------------------
+
+    Jason Project File
+
+    This file defines the initial state of the MAS
+
+    Jason 2.5.1
+    abril 26, 2023 - 16:52:14
+*/
+
+MAS redSemanticaUniversidad {
+
+    infrastructure: Local
+
+    agents: sample_agent;
+}
