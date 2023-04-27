@@ -1,42 +1,95 @@
-// Agent sample_agent in project ejemplo
-
-/* Initial beliefs and rules */
-
-/* Initial goals */
-
-genera_calificaciones(Alumno):-
-	Puntuacion = 10 &
-	.random(X, Puntuacion) &
-	L = X * 10 &
-	.print(Alumno, " tiene un calificacion de: ", L).
-
-por_alumno([], _).
-por_alumno([Car|Cdr], Trabajo):- 
-	.print("Alumno ", Car, " hace trabajo ", Trabajo) &
-	por_alumno(Cdr, Trabajo).
-
-
-por_trabajo([], _).
-por_trabajo([Car|Cdr], Alumnos):- 
-	por_alumno(Alumnos, Car) & 
-	por_trabajo(Cdr, Alumnos).
-
-trabajo(entrega).
-trabajo(presentacion).
+entregables(video).
+entregables(memoria).
 
 alumno(david).
 alumno(martin).
 
-alumnos:- 
-	.findall(Al, alumno(Al), A) & 
-	.findall(Tr, trabajo(Tr), T) & 
-	.print(T) & 
-	por_trabajo(T, A) & 
-	genera_calificaciones(A). 
+profesor(moreno).
 
-alumnos.	
+insertar(X,[],[X]).
+insertar(X, Lista, [X|Lista]).
+
+por_entregable([Entregable], Alumno, L1, L3):-
+    insertar(trabajo_entregado(Alumno, Entregable), L1, L3).
+por_entregable([Entregable|Resto], Alumno, L1, L3):-
+    insertar(trabajo_entregado(Alumno, Entregable), L1, L2) &
+	por_entregable(Resto, Alumno, L2, L3).
+
+por_alumno([Alumno], Entregables, L1, L3):- por_entregable(Entregables, Alumno, L1, L3).
+por_alumno([Alumno|Resto], Entregables, L1, L3):-
+    por_entregable(Entregables, Alumno, L1, L2) &
+	por_alumno(Resto, Entregables, L2, L3).
+
+despachar_entregables(Alumnos, Entregable, L1, L2):-
+    por_alumno(Alumnos, Entregable, L1, L2).
+
+mandar_hacer_un_trabajo(Profesor, L1, L2):-
+    profesor(Profesor) &
+    .findall(Alumno, alumno(Alumno), Alumnos) &
+    .findall(Entregable, entregables(Entregable), Entregables) &
+    despachar_entregables(Alumnos, Entregables, L1, L2).
+
+mandar_hacer_un_trabajo(Profesor, L1, L2):-
+    .print("mandar_hacer_un_trabajo NOK").
+
+nota_random(X):-
+    Tope = 5 &
+    .random(Val, Tope) &
+    X = Val * 10.
+
+puntuar([Trabajo],Alumno, L1, L2):-
+    nota_random(Nota) &
+    insertar(calificacion(Alumno, Trabajo, Nota), L1, L2).
+
+puntuar([Trabajo|Resto],Alumno, L1, L3):-
+    nota_random(Nota) &
+    insertar(calificacion(Alumno,Trabajo, Nota), L1, L2) &
+    puntuar(Resto, Alumno, L2, L3).
+
+calificar_alumnos([Alumno],Trabajos, L1, L2):-
+    .findall(X, trabajo_entregado(Alumno, X), Trabajos) &
+    puntuar(Trabajos, Alumno, L1, L2).
+
+calificar_alumnos([Alumno|Resto],Trabajos, L1, L3):-
+    .findall(X, trabajo_entregado(Alumno, X), Trabajos) &
+    puntuar(Trabajos, Alumno, L1, L2) &
+    calificar_alumnos(Resto, Trabajos, L2, L3).
+
+calificar_trabajos(Profesor, L1, L2):-
+    profesor(Profesor) &
+    .findall(Alumno, alumno(Alumno), Alumnos) &
+    calificar_alumnos(Alumnos,Trabajos, L1, L2).
+
+calificar_trabajos(Profesor, L1, L2):- .print(" calificar_trabajos NOK").
+
+sumar([H], Acc, R):-
+    R = Acc + H.
+sumar([H|T], Acc, R):-
+    Aux = Acc + H &
+    sumar(T, Aux, R).
+
+calcular_notas_finales([Alumno]):-
+    .findall(X, calificacion(Alumno,_,X), Calificaciones) &
+    sumar(Calificaciones, 0, R) &
+    .print("Nota de ", Alumno, " es ", R).
+
+calcular_notas_finales([Alumno|Resto]):-
+    .findall(X, calificacion(Alumno,_,X), Calificaciones) &
+    .print(Calificaciones) &
+    sumar(Calificaciones, 0, R) &
+    .print("Nota de ", Alumno, " es ", R) &
+    calcular_notas_finales(Resto).
+
++!almacenar_beliefs(Beliefs) <-
+    for ( .member(M,Beliefs) ) {
+        +M;
+    }.
+
 !start.
-
-/* Plans */
-
-+!start : true <- .print("hello world."); ?alumnos.
++!start : true <-
+    ?mandar_hacer_un_trabajo(moreno, [], Entregables);
+    !almacenar_beliefs(Entregables);
+    ?calificar_trabajos(moreno, [], Resultados);
+    !almacenar_beliefs(Resultados);
+    .findall(Alumno, alumno(Alumno), Alumnos);
+    ?calcular_notas_finales(Alumnos).
