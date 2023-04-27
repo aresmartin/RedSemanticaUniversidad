@@ -1,54 +1,42 @@
-/*
-	construir una simulación en la que un profesor solicita a un grupo de alumnos
-	la realización de un trabajo que constará de dos entregas diferentes: 
-	una memoria y un vídeo, que serán calificados por separado con un peso diferente
-*/
+// Agent sample_agent in project ejemplo
 
 /* Initial beliefs and rules */
-//Beliefs posteriores: calificacion(Alumno, Trabajo, nota).
-alumno(martin).
-profesor(moreno).
-tarea(video).
-tarea(presentacion).
-evaluacion(video, 0.3).
-presentacion(prensentacion, 0.7).
-trabajo(trabajo_final, [video, presentacion]).
 
 /* Initial goals */
 
+genera_calificaciones(Alumno):-
+	Puntuacion = 10 &
+	.random(X, Puntuacion) &
+	L = X * 10 &
+	.print(Alumno, " tiene un calificacion de: ", L).
+
+por_alumno([], _).
+por_alumno([Car|Cdr], Trabajo):- 
+	.print("Alumno ", Car, " hace trabajo ", Trabajo) &
+	por_alumno(Cdr, Trabajo).
+
+
+por_trabajo([], _).
+por_trabajo([Car|Cdr], Alumnos):- 
+	por_alumno(Alumnos, Car) & 
+	por_trabajo(Cdr, Alumnos).
+
+trabajo(entrega).
+trabajo(presentacion).
+
+alumno(david).
+alumno(martin).
+
+alumnos:- 
+	.findall(Al, alumno(Al), A) & 
+	.findall(Tr, trabajo(Tr), T) & 
+	.print(T) & 
+	por_trabajo(T, A) & 
+	genera_calificaciones(A). 
+
+alumnos.	
 !start.
 
 /* Plans */
 
-+!start : true
-	<- +nuevo_trabajo(moreno, trabajo_final).
-
-+!proponer_trabajo <-true.
-
-nuevo_trabajo(Profesor, NombreTrabajo):- profesor(Profesor) & trabajo(NombreTrabajo, Entregas) & despacha(Entregas).
-	
-
-//TODO: que ocurre si trabajo no existe
-nuevo_trabajo(Profesor, NombreTrabajo).
-
-//TODO: que pasa si el alumno o la entrega no existen
-//realizar_entrega(Alumno, Entrega)
-	//<- +entregable(Alumno, Entrega).
-	
-despachar_entregas([]).	
-despachar_entregas([Car|Cdr]):- .print(Car) & desapachar_entregas(Cdr).
-	
-		
-
-
-
-		
-	
-	
-	
-	
-	
-	
-	
-	
-	
++!start : true <- .print("hello world."); ?alumnos.
