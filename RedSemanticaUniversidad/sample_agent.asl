@@ -1,8 +1,8 @@
 entregables(video).
 entregables(memoria).
 
-alumno(david).
-alumno(martin).
+alumno(alumno1).
+alumno(alumno2).
 
 profesor(moreno).
 
@@ -33,18 +33,18 @@ mandar_hacer_un_trabajo(Profesor, L1, L2):-
     .print("mandar_hacer_un_trabajo NOK").
 
 nota_random(X):-
-    Tope = 5 &
-    .random(Val, Tope) &
+    .random(Val) &
     X = Val * 10.
 
-puntuar([Trabajo],Alumno, L1, L2):-
-    nota_random(Nota) &
-    insertar(calificacion(Alumno, Trabajo, Nota), L1, L2).
 
-puntuar([Trabajo|Resto],Alumno, L1, L3):-
-    nota_random(Nota) &
-    insertar(calificacion(Alumno,Trabajo, Nota), L1, L2) &
-    puntuar(Resto, Alumno, L2, L3).
+
+puntuar([Trabajo1, Trabajo2 | Resto], Alumno, L1, L3):-
+    nota_random(Nota1*0.6) &
+    nota_random(Nota2*0.4) &
+    insertar(calificacion(Alumno, Trabajo1, Nota1), L1, L2) &
+    insertar(calificacion(Alumno, Trabajo2, Nota2), L2, L4) &
+    puntuar(Resto, Alumno, L4, L3).
+
 
 calificar_alumnos([Alumno],Trabajos, L1, L2):-
     .findall(X, trabajo_entregado(Alumno, X), Trabajos) &
